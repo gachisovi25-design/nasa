@@ -1,11 +1,12 @@
-# Local Development Server with .env Support
+# Local Development Server with Dynamic .env Support
 import http.server
 import socketserver
 import os
 import urllib.request
 from urllib.parse import urlparse, parse_qs
 
-def load_env():
+# Dynamically fetch NASA_API_KEY from .env on every request so changes take effect instantly
+def get_api_key():
     env_file = os.path.join(os.path.dirname(__file__), '.env')
     if os.path.exists(env_file):
         try:
@@ -14,11 +15,13 @@ def load_env():
                     line = line.strip()
                     if line and not line.startswith('#') and '=' in line:
                         k, v = line.split('=', 1)
-                        os.environ[k.strip()] = v.strip().strip("'").strip('"')
+                        if k.strip() == 'NASA_API_KEY':
+                            key_val = v.strip().strip("'").strip('"')
+                            if key_val:
+                                return key_val
         except Exception as e:
-            print("Failed to parse .env:", e)
-
-load_env()
+            print("Failed to read .env dynamically:", e)
+    return os.environ.get('NASA_API_KEY', 'DEMO_KEY')
 
 PORT = 8000
 
@@ -26,7 +29,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path == '/api/apod':
-            api_key = os.environ.get('NASA_API_KEY', 'DEMO_KEY')
+            api_key = get_api_key()
             qs = parse_qs(parsed.query)
             target_url = f"https://api.nasa.gov/planetary/apod?api_key={api_key}"
             for k in ['date', 'count', 'start_date', 'end_date']:
@@ -61,6 +64,6 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     print(f"[Local Server] http://localhost:{PORT} running")
-    print(f"[.env Loaded] NASA_API_KEY: {os.environ.get('NASA_API_KEY', 'DEMO_KEY')[:6]}...")
+    print(f"[Dynamic .env Ready] NASA_API_KEY loaded: {get_api_key()[:6]}...")
     with socketserver.TCPServer(("", PORT), CustomHandler) as httpd:
         httpd.serve_forever()
