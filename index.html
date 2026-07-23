@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA APOD | 오늘의 죽이는 우주 사진</title>
+    <meta name="description" content="매일 업데이트되는 NASA(미국항공우주국)의 아름다운 우주 사진과 전문 설명을 감상해 보세요.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Canvas for Starfield / Ambient Particles Animation -->
+    <canvas id="starfield"></canvas>
+
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="navbar glass-panel">
+            <div class="logo-container">
+                <div class="nasa-badge">NASA APOD</div>
+                <h1>ASTRONOMY <span class="highlight">PICTURE OF THE DAY</span></h1>
+            </div>
+
+            <div class="header-actions">
+                <div class="date-selector">
+                    <button id="prevDayBtn" class="btn btn-icon" title="이전날 사진"><i class="fa-solid fa-chevron-left"></i></button>
+                    <input type="date" id="apodDatePicker" class="date-input">
+                    <button id="nextDayBtn" class="btn btn-icon" title="다음날 사진"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button id="todayBtn" class="btn btn-secondary">오늘</button>
+                </div>
+                
+                <button id="randomBtn" class="btn btn-primary">
+                    <i class="fa-solid fa-dice"></i> 무작위 사진
+                </button>
+                
+                <!-- Light / Dark Mode Toggle Button -->
+                <button id="themeToggleBtn" class="btn btn-icon" title="테마 전환 (라이트/다크)">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+
+                <!-- API Key Modal Button -->
+                <button id="apiKeyModalBtn" class="btn btn-icon" title="API Key 설정">
+                    <i class="fa-solid fa-key"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Loading State -->
+        <div id="loader" class="loader-container glass-panel hidden">
+            <div class="spinner"></div>
+            <p id="loaderText">NASA 우주 망원경에서 데이터를 불러오는 중...</p>
+        </div>
+
+        <!-- Main APOD Display Card -->
+        <main id="apodMain" class="apod-card glass-panel">
+            <div class="media-container">
+                <!-- Image Display -->
+                <img id="apodImage" class="apod-media hidden" src="" alt="NASA APOD">
+                <!-- Video Display -->
+                <iframe id="apodVideo" class="apod-media apod-video hidden" src="" frameborder="0" allowfullscreen></iframe>
+                
+                <!-- Overlay Controls -->
+                <div class="media-overlay">
+                    <button id="zoomBtn" class="btn btn-icon media-btn" title="HD 고화질 보기">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                    <a id="downloadBtn" href="#" target="_blank" download class="btn btn-icon media-btn" title="원본 다운로드">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                    <button id="favBtn" class="btn btn-icon media-btn" title="즐겨찾기 추가">
+                        <i class="fa-regular fa-bookmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-container">
+                <div class="meta-bar">
+                    <span id="apodDate" class="date-badge"><i class="fa-regular fa-calendar"></i> 2026-07-23</span>
+                    <span id="apodCopyright" class="copyright-badge hidden"><i class="fa-solid fa-camera"></i> Image Credit</span>
+                </div>
+
+                <h2 id="apodTitle" class="apod-title">우주의 신비를 로딩 중입니다...</h2>
+                
+                <div class="explanation-box">
+                    <p id="apodExplanation" class="apod-explanation">
+                        설명이 이 영역에 표시됩니다.
+                    </p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Recent Gallery Section -->
+        <section class="gallery-section glass-panel">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-compass"></i> 최근 6일간의 우주 사진 탐색</h3>
+            </div>
+            <div id="galleryGrid" class="gallery-grid">
+                <!-- Dynamically generated gallery cards -->
+            </div>
+        </section>
+
+        <!-- Saved Favorites Section -->
+        <section id="favoritesSection" class="gallery-section glass-panel hidden">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-bookmark"></i> 보관한 우주 사진 (즐겨찾기)</h3>
+            </div>
+            <div id="favoritesGrid" class="gallery-grid">
+                <!-- Dynamically generated favorite cards -->
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Data & Images provided by <a href="https://api.nasa.gov/" target="_blank" rel="noopener">NASA Astronomy Picture of the Day API</a></p>
+        </footer>
+    </div>
+
+    <!-- API Key Settings Modal -->
+    <div id="apiKeyModal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-key"></i> NASA API Key 설정</h3>
+                <button id="closeModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>기본 제공되는 DEMO_KEY로 즉시 이용 가능합니다. 본인의 API Key가 있다면 등록하여 요청 제한 없이 이용할 수 있습니다.</p>
+                <div class="key-status-box">
+                    <span>현재 상태: </span>
+                    <strong id="keyStatusText" class="status-demo">DEMO_KEY 사용 중</strong>
+                </div>
+                <div class="input-group">
+                    <label for="apiKeyInput">사용자 API Key:</label>
+                    <input type="text" id="apiKeyInput" placeholder="예: abc123XYZ... (비워두면 DEMO_KEY 사용)">
+                </div>
+                <div class="guide-box">
+                    <a href="https://api.nasa.gov/" target="_blank" rel="noopener" class="guide-link">
+                        NASA API 공식 사이트에서 무료 키 발급받기 <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="resetKeyBtn" class="btn btn-secondary">DEMO_KEY로 초기화</button>
+                <button id="saveKeyBtn" class="btn btn-primary">저장 및 적용</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Image Lightbox Modal -->
+    <div id="lightboxModal" class="lightbox-overlay hidden">
+        <button id="closeLightboxBtn" class="lightbox-close">&times;</button>
+        <img id="lightboxImage" src="" alt="Full Resolution APOD">
+        <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
