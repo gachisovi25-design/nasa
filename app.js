@@ -52,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initStarfield();
     initDatePicker();
     setupEventListeners();
-    updateApiKeyStatusUI();
     
     // Load Today's APOD
     loadApodLatest();
@@ -230,38 +229,6 @@ function setupEventListeners() {
 
     document.getElementById('favBtn').addEventListener('click', () => {
         toggleFavoriteCurrent();
-    });
-
-    // API Key Modal Events
-    const modal = document.getElementById('apiKeyModal');
-    document.getElementById('apiKeyModalBtn').addEventListener('click', () => {
-        document.getElementById('apiKeyInput').value = state.apiKey === DEFAULT_API_KEY ? '' : state.apiKey;
-        modal.classList.remove('hidden');
-    });
-
-    document.getElementById('closeModalBtn').addEventListener('click', () => {
-        modal.classList.add('hidden');
-    });
-
-    document.getElementById('saveKeyBtn').addEventListener('click', () => {
-        const inputVal = document.getElementById('apiKeyInput').value.trim();
-        state.apiKey = inputVal ? inputVal : DEFAULT_API_KEY;
-        if (inputVal) {
-            localStorage.setItem('nasa_api_key', inputVal);
-        } else {
-            localStorage.removeItem('nasa_api_key');
-        }
-        updateApiKeyStatusUI();
-        modal.classList.add('hidden');
-        loadApodLatest();
-    });
-
-    document.getElementById('resetKeyBtn').addEventListener('click', () => {
-        state.apiKey = DEFAULT_API_KEY;
-        localStorage.removeItem('nasa_api_key');
-        updateApiKeyStatusUI();
-        modal.classList.add('hidden');
-        loadApodLatest();
     });
 }
 

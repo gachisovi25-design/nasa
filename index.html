@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NASA APOD | 오늘의 죽이는 우주 사진</title>
+    <title>NASA APOD | 오늘의 우주 사진</title>
     <meta name="description" content="매일 업데이트되는 NASA(미국항공우주국)의 아름다운 우주 사진과 전문 설명을 감상해 보세요.">
     
     <!-- Google Fonts -->
@@ -43,11 +43,6 @@
                 <!-- Light / Dark Mode Toggle Button -->
                 <button id="themeToggleBtn" class="btn btn-icon" title="테마 전환 (라이트/다크)">
                     <i class="fa-solid fa-sun"></i>
-                </button>
-
-                <!-- API Key Modal Button -->
-                <button id="apiKeyModalBtn" class="btn btn-icon" title="API Key 설정">
-                    <i class="fa-solid fa-key"></i>
                 </button>
             </div>
         </header>
@@ -120,36 +115,6 @@
         <footer class="app-footer">
             <p>Data & Images provided by <a href="https://api.nasa.gov/" target="_blank" rel="noopener">NASA Astronomy Picture of the Day API</a></p>
         </footer>
-    </div>
-
-    <!-- API Key Settings Modal -->
-    <div id="apiKeyModal" class="modal-overlay hidden">
-        <div class="modal-content glass-panel">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-key"></i> NASA API Key 설정</h3>
-                <button id="closeModalBtn" class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>기본 제공되는 DEMO_KEY로 즉시 이용 가능합니다. 본인의 API Key가 있다면 등록하여 요청 제한 없이 이용할 수 있습니다.</p>
-                <div class="key-status-box">
-                    <span>현재 상태: </span>
-                    <strong id="keyStatusText" class="status-demo">DEMO_KEY 사용 중</strong>
-                </div>
-                <div class="input-group">
-                    <label for="apiKeyInput">사용자 API Key:</label>
-                    <input type="text" id="apiKeyInput" placeholder="예: abc123XYZ... (비워두면 DEMO_KEY 사용)">
-                </div>
-                <div class="guide-box">
-                    <a href="https://api.nasa.gov/" target="_blank" rel="noopener" class="guide-link">
-                        NASA API 공식 사이트에서 무료 키 발급받기 <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="resetKeyBtn" class="btn btn-secondary">DEMO_KEY로 초기화</button>
-                <button id="saveKeyBtn" class="btn btn-primary">저장 및 적용</button>
-            </div>
-        </div>
     </div>
 
     <!-- Fullscreen Image Lightbox Modal -->
