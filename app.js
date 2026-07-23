@@ -3,7 +3,8 @@
    ========================================================================== */
 
 const DEFAULT_API_KEY = 'DEMO_KEY';
-const APOD_API_URL = 'https://api.nasa.gov/planetary/apod';
+const APOD_DIRECT_URL = 'https://api.nasa.gov/planetary/apod';
+const PROXY_API_URL = '/api/apod'; // Vercel Serverless Function Endpoint
 const MIN_DATE = '1995-06-16';
 
 // Fallback high-res space data
@@ -58,6 +59,29 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRecentGallery();
     renderFavorites();
 });
+
+// Helper for Smart Fetch (Vercel Proxy Serverless -> Direct NASA Fallback)
+async function fetchApodData(params = '') {
+    // Try Vercel Serverless Proxy first (Uses process.env.NASA_API_KEY on Vercel)
+    try {
+        const proxyRes = await fetch(`${PROXY_API_URL}${params}`);
+        if (proxyRes.ok) {
+            return await proxyRes.json();
+        }
+    } catch (e) {
+        // Ignore & fallback to direct API
+    }
+
+    // Direct API fallback (Local or non-Vercel environments)
+    const connector = params ? (params.includes('?') ? '&' : '?') : '?';
+    const directUrl = `${APOD_DIRECT_URL}${params}${connector}api_key=${state.apiKey}`;
+    const directRes = await fetch(directUrl);
+    
+    if (!directRes.ok) {
+        throw new Error(`NASA API HTTP ${directRes.status}`);
+    }
+    return await directRes.json();
+}
 
 // ==========================================================================
 // 1. Theme Management (Light / Dark Mode)
@@ -259,7 +283,7 @@ function changeDateByDays(days) {
 function updateApiKeyStatusUI() {
     const statusText = document.getElementById('keyStatusText');
     if (state.apiKey === DEFAULT_API_KEY) {
-        statusText.textContent = 'DEMO_KEY 사용 중';
+        statusText.textContent = 'DEMO_KEY 사용 중 (Vercel 배포 환경 변수 우선 적용)';
         statusText.className = 'status-demo';
     } else {
         statusText.textContent = `사용자 지정 키 적용됨 (${state.apiKey.substring(0, 6)}...)`;
@@ -272,13 +296,9 @@ function updateApiKeyStatusUI() {
 // ==========================================================================
 async function loadApodLatest() {
     showLoader(true, 'NASA 최신 우주 사진을 수신하는 중...');
-    const url = `${APOD_API_URL}?api_key=${state.apiKey}`;
 
     try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`NASA API HTTP ${res.status}`);
-        const data = await res.json();
-        
+        const data = await fetchApodData('');
         state.currentApod = data;
         state.currentDate = data.date;
         document.getElementById('apodDatePicker').value = data.date;
@@ -297,17 +317,9 @@ async function loadApodLatest() {
 
 async function loadApodByDate(dateStr) {
     showLoader(true, `${dateStr} 사진을 불러오는 중...`);
-    const url = `${APOD_API_URL}?date=${dateStr}&api_key=${state.apiKey}`;
 
     try {
-        const res = await fetch(url);
-        if (!res.ok) {
-            if (res.status === 400) {
-                throw new Error('선택하신 날짜의 APOD가 아직 NASA 서버에 게시되지 않았거나 미래 날짜입니다.');
-            }
-            throw new Error(`NASA API 오류 (${res.status})`);
-        }
-        const data = await res.json();
+        const data = await fetchApodData(`?date=${dateStr}`);
         state.currentApod = data;
         renderMainApod(data);
     } catch (err) {
@@ -322,13 +334,10 @@ async function loadApodByDate(dateStr) {
 
 async function loadRandomApod() {
     showLoader(true, '우주 속 무작위 사진을 탐색하는 중...');
-    const url = `${APOD_API_URL}?count=1&api_key=${state.apiKey}`;
 
     try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('무작위 사진을 불러오지 못했습니다.');
-        const dataArray = await res.json();
-        if (dataArray && dataArray.length > 0) {
+        const dataArray = await fetchApodData('?count=1');
+        if (Array.isArray(dataArray) && dataArray.length > 0) {
             const data = dataArray[0];
             state.currentApod = data;
             state.currentDate = data.date;
@@ -355,13 +364,11 @@ async function loadRecentGallery() {
     const startStr = formatDate(startDate);
     const endStr = formatDate(endDate);
 
-    const url = `${APOD_API_URL}?start_date=${startStr}&end_date=${endStr}&api_key=${state.apiKey}`;
-
     try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Gallery fetch failed');
-        const list = await res.json();
-        renderGallery(list.reverse());
+        const list = await fetchApodData(`?start_date=${startStr}&end_date=${endStr}`);
+        if (Array.isArray(list)) {
+            renderGallery(list.reverse());
+        }
     } catch (err) {
         console.warn('Gallery fallback loaded');
         renderGallery(FALLBACK_APODS);
