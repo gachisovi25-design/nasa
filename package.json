@@ -1,0 +1,13 @@
+{
+  "name": "nasa-apod-app",
+  "version": "1.0.0",
+  "description": "NASA Astronomy Picture of the Day Web Application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["nasa", "apod", "space"],
+  "author": "",
+  "license": "ISC"
+}
